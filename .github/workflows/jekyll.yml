@@ -43,6 +43,17 @@ jobs:
       - name: Minify JS files
         run: |
           uglifyjs assets/js/plugins/jquery.greedy-navigation.js assets/js/_main.js assets/js/theme.js -c -m -o assets/js/main.min.js
+      - name: Ensure Pages is configured for GitHub Actions deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Current Pages site info:"
+          curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/pages" || true
+          echo ""
+          echo "Attempting to set build_type=workflow:"
+          curl -sS -o /tmp/pages_resp.txt -w "HTTP %{http_code}\n" -X PUT -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/pages" -d '{"build_type":"workflow"}' || true
+          cat /tmp/pages_resp.txt || true
+          echo ""
       - name: Configure GitHub Pages
         id: pages
         uses: actions/configure-pages@v6.0.0
